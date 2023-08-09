@@ -3,6 +3,7 @@ package nbsgetname
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"log"
 	"math/rand"
 	"net"
@@ -94,7 +95,34 @@ func GetNetbiosNameFromIp(ip string) string {
 	log.Println("Sent NBNS request to", remoteIP)
 	// Receive the response
 	response := make([]byte, 512) // Adjust buffer size as needed
-	n, _, err := syscall.Recvfrom(fd, response, 0)
+	// Create a channel to receive the result
+	resultChan := make(chan int)
+	timeout := 5 * time.Second
+	// Perform the syscall in a goroutine
+	n := 0
+	//declare err
+	err = errors.New("")
+
+	go func() {
+		n, _, err = syscall.Recvfrom(fd, response, 0)
+		if err != nil {
+			resultChan <- -1 // Error occurred
+		} else {
+			resultChan <- n // Successful result
+		}
+	}()
+
+	// Wait for either the result or the timeout
+	select {
+	case result := <-resultChan:
+		if result == -1 {
+			return ""
+		} else {
+			// Process the received data
+		}
+	case <-time.After(timeout):
+		return ""
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
