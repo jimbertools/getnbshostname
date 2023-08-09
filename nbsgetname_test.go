@@ -1,4 +1,4 @@
-package nbsgetname
+package getnbshostname
 
 import (
 	"log"
