@@ -1,4 +1,4 @@
-module testnetbios
+module github.com/jimbertools/getnbshostname
 
 go 1.20
 
